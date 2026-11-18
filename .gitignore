@@ -1,0 +1,5 @@
+secrets/
+srcs/.env
+.vault_pass
+*.retry
+.vagrant/
