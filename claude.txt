@@ -1,0 +1,11 @@
+8. Le plan étape par étape
+Théorie ✅ (cette étape)
+Choisir le provider, créer le compte, alerte budget, clé SSH, créer une instance Ubuntu 22.04 + firewall 22/80/443
+Installer Ansible en local, écrire l'inventory, tester ansible all -m ping
+Rôle common : paquets, swap, mises à jour
+Rôle docker : installation de Docker Engine + plugin compose, service activé au boot
+Rôle firewall : UFW (22/80/443)
+Rôle app : copie des fichiers compose, .env depuis le Vault, docker compose up
+nginx : routage / et /phpmyadmin, puis TLS (DuckDNS + Let's Encrypt)
+Tests : idempotence (2ᵉ run = changed=0), reboot (site + données intacts), scan de ports (nmap), 2 serveurs en parallèle
+Doc + nettoyage des ressources cloud
