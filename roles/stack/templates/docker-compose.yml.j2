@@ -1,0 +1,39 @@
+# Managed by Ansible (role: stack). Do not edit on the server.
+name: cloud1
+
+services:
+  mariadb: 
+    image: {{ stack_mariadb_image }}
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: {{ app_db_name }}
+      MARIADB_USER: {{ app_db_user }}
+      MARIADB_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+      MARIADB_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_root_password
+      - db_password
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+networks:
+  backend:
+    internal: true
+  frontend:
+
+volumes:
+  db_data:
+
+secrets:
+  db_root_password:
+    file: ./secrets/db_root_password
+  db_password:
+    file: ./secrets/db_password

@@ -1,8 +1,9 @@
+---
 - name: Deploy Cloud-1
   hosts: cloud1
   become: true
   roles:
-    - common
-    - docker
-    - firewall
-    - app
+    - { role: common, tags: [common] }
+    - { role: docker, tags: [docker] }
+    - { role: firewall, tags: [firewall] }
+    - { role: mariadb, tags: [mariadb] }

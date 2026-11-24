@@ -1,0 +1,39 @@
+---
+- name: Create application directory
+  ansible.builtin.file:
+    path: "{{ app_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Create secrets directory (root only)
+  ansible.builtin.file:
+    path: "{{ app_dir }}/secrets"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Write secret files
+  ansible.builtin.copy:
+    dest: "{{ app_dir }}/secrets/{{ item.name }}"
+    content: "{{ item.value }}"
+    owner: root
+    group: root
+    mode: "0444"
+  loop:
+    - { name: db_root_password, value: "{{ app_db_root_password }}" }
+    - { name: db_password, value: "{{ app_db_password }}" }
+  loop_control:
+    label: "{{ item.name }}"
+  no_log: true
+  diff: false
+
+- name: Deploy docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ app_dir }}/docker-compose.yml"
+    owner: root
+    group: root
+    mode: "0644"
