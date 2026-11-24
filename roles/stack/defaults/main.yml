@@ -1,2 +1,4 @@
 ---
 stack_mariadb_image: "mariadb:11.4"
+stack_phpmyadmin_image: "phpmyadmin:5.2-fpm-alpine"
+stack_nginx_image: "nginx:1.30-alpine-slim"

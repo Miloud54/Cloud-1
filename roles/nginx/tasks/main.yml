@@ -1,0 +1,58 @@
+---
+- name: Create nginx directories
+  ansible.builtin.file:
+    path: "{{ app_dir }}/nginx/{{ item.name }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+  loop:
+    - { name: conf.d, mode: "0755" }
+    - { name: certs, mode: "0700" }
+
+- name: Deploy nginx site configuration
+  ansible.builtin.template:
+    src: default.conf.j2
+    dest: "{{ app_dir }}/nginx/conf.d/default.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload nginx
+
+- name: Generate self-signed certificate if none exists
+  ansible.builtin.command:
+    argv:
+      - openssl
+      - req
+      - -x509
+      - -nodes
+      - -newkey
+      - rsa:2048
+      - -days
+      - "365"
+      - -keyout
+      - "{{ app_dir }}/nginx/certs/privkey.pem"
+      - -out
+      - "{{ app_dir }}/nginx/certs/fullchain.pem"
+      - -subj
+      - "/CN={{ app_domain }}"
+      - -addext
+      - "subjectAltName=DNS:{{ app_domain }}"
+    creates: "{{ app_dir }}/nginx/certs/fullchain.pem"
+  notify: Reload nginx
+
+- name: Restrict private key permissions
+  ansible.builtin.file:
+    path: "{{ app_dir }}/nginx/certs/privkey.pem"
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Start nginx service
+  community.docker.docker_compose_v2:
+    project_src: "{{ app_dir }}"
+    services:
+      - nginx
+    state: present
+    wait: true
+    wait_timeout: 120

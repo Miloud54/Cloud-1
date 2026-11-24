@@ -1,0 +1,9 @@
+---
+- name: Start phpMyAdmin service
+  community.docker.docker_compose_v2:
+    project_src: "{{ app_dir }}"
+    services:
+      - phpmyadmin
+    state: present
+    wait: true
+    wait_timeout: 120

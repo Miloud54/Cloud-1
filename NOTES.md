@@ -9,8 +9,8 @@
 5. ✅ Rôle `docker` : Docker Engine + plugin compose, service activé au boot
 6. ✅ Rôle `firewall` : UFW (22/80/443)
 7. ✅ Secrets et variables : Vault + domaine automatique sslip.io
-8. ⏳ Rôles par service : `stack`, `mariadb`, `wordpress` (Dockerfile), `phpmyadmin`, `nginx` (routage `/` et `/phpmyadmin`, auto-signé)
-9. TLS : Let's Encrypt quand c'est possible, sinon on reste en auto-signé
+8. ✅ Rôles par service : `stack`, `mariadb`, `wordpress` (Dockerfile), `phpmyadmin`, `nginx` (routage `/` et `/phpmyadmin`, auto-signé)
+9. ⏳ TLS : Let's Encrypt quand c'est possible, sinon on reste en auto-signé
 10. Tests de la grille : nouvelle machine, idempotence (`changed=0`), reboot (site + données intacts), `nmap`, 2 serveurs en parallèle, `docker volume ls`, `docker compose restart <service>`
 11. Doc (README + section « Utilisation de l'IA ») + nettoyage des ressources cloud
 

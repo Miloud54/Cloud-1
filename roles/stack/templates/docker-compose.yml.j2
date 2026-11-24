@@ -50,6 +50,40 @@ services:
       retries: 5
       start_period: 30s
 
+  phpmyadmin:
+    image: {{ stack_phpmyadmin_image }}
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      PMA_HOST: mariadb
+      PMA_ABSOLUTE_URI: https://{{ app_domain }}/phpmyadmin/
+    volumes:
+      - pma_data:/var/www/html
+    networks:
+      - backend
+      - frontend
+
+  nginx:
+    image: {{ stack_nginx_image }}
+    restart: unless-stopped
+    depends_on:
+      wordpress:
+        condition: service_healthy
+      phpmyadmin:
+        condition: service_started
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+      - wp_data:/var/www/html:ro
+      - pma_data:/var/www/phpmyadmin:ro
+    networks:
+      - frontend
+
 networks:
   backend:
     internal: true
@@ -58,6 +92,7 @@ networks:
 volumes:
   db_data:
   wp_data:
+  pma_data:
 
 secrets:
   db_root_password:
