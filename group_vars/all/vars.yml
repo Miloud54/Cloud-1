@@ -1,0 +1,13 @@
+---
+app_dir: /opt/cloud1
+app_domain: "{{ ansible_host | replace('.', '-') }}.sslip.io"
+
+app_db_name: wordpress
+app_db_user: wpuser
+app_db_password: "{{ vault_app_db_password }}"
+app_db_root_password: "{{ vault_app_db_root_password }}"
+
+app_wp_title: Cloud-1
+app_wp_admin_user: edidierbosslady
+app_wp_admin_password: "{{ vault_app_wp_admin_password }}"
+app_wp_admin_email: "{{ vault_app_wp_admin_email }}"
