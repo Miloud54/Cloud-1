@@ -7,3 +7,4 @@
     - { role: docker, tags: [docker] }
     - { role: firewall, tags: [firewall] }
     - { role: mariadb, tags: [mariadb] }
+    - { role: wordpress, tags: [wordpress] }

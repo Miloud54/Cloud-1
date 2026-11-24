@@ -1,0 +1,80 @@
+---
+- name: Create WordPress build directory
+  ansible.builtin.file:
+    path: "{{ app_dir }}/wordpress"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Copy WordPress build context
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ app_dir }}/wordpress/{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - Dockerfile
+    - uploads.ini
+  register: wordpress_build_context
+
+- name: Build and start WordPress
+  community.docker.docker_compose_v2:
+    project_src: "{{ app_dir }}"
+    services:
+      - wordpress
+    build: "{{ 'always' if wordpress_build_context.changed else 'policy' }}"
+    state: present
+    wait: true
+    wait_timeout: 180
+
+- name: Check if WordPress is installed
+  ansible.builtin.command:
+    argv: [docker, compose, exec, -T, --user, www-data, wordpress, wp, core, is-installed]
+    chdir: "{{ app_dir }}"
+  register: wordpress_installed
+  changed_when: false
+  failed_when: wordpress_installed.rc not in [0, 1]
+
+- name: Install WordPress
+  ansible.builtin.command:
+    argv:
+      - docker
+      - compose
+      - exec
+      - -T
+      - --user
+      - www-data
+      - wordpress
+      - wp
+      - core
+      - install
+      - "--url=https://{{ app_domain }}"
+      - "--title={{ app_wp_title }}"
+      - "--admin_user={{ app_wp_admin_user }}"
+      - "--admin_email={{ app_wp_admin_email }}"
+      - --prompt=admin_password
+      - --skip-email
+    stdin: "{{ app_wp_admin_password }}"
+    chdir: "{{ app_dir }}"
+  when: wordpress_installed.rc == 1
+  changed_when: true
+  no_log: true
+
+- name: Get current WordPress URL
+  ansible.builtin.command:
+    argv: [docker, compose, exec, -T, --user, www-data, wordpress, wp, option, get, siteurl]
+    chdir: "{{ app_dir }}"
+  register: wordpress_siteurl
+  changed_when: false
+
+- name: Update WordPress URL if the domain changed
+  ansible.builtin.command:
+    argv: [docker, compose, exec, -T, --user, www-data, wordpress, wp, option, update, "{{ item }}", "https://{{ app_domain }}"]
+    chdir: "{{ app_dir }}"
+  loop:
+    - home
+    - siteurl
+  when: wordpress_siteurl.stdout != "https://" ~ app_domain
+  changed_when: true
