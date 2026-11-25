@@ -40,6 +40,7 @@ services:
       - db_password
     volumes:
       - wp_data:/var/www/html
+      - ./wordpress/mu-plugins:/var/www/html/wp-content/mu-plugins:ro
     networks:
       - backend
       - frontend

@@ -19,6 +19,22 @@
     - uploads.ini
   register: wordpress_build_context
 
+- name: Create mu-plugins directory
+  ansible.builtin.file:
+    path: "{{ app_dir }}/wordpress/mu-plugins"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy server identification mu-plugin
+  ansible.builtin.template:
+    src: cloud1-server-id.php.j2
+    dest: "{{ app_dir }}/wordpress/mu-plugins/cloud1-server-id.php"
+    owner: root
+    group: root
+    mode: "0644"
+
 - name: Build and start WordPress
   community.docker.docker_compose_v2:
     project_src: "{{ app_dir }}"

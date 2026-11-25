@@ -1,0 +1,11 @@
+<?php
+/**
+ * Plugin Name: Cloud-1 server identification
+ * Description: Shows which server rendered the page. Managed by Ansible, do not edit.
+ */
+
+add_action('wp_footer', function () {
+    echo '<p style="text-align:center;font-size:12px;opacity:.6;margin:1em 0;">'
+        . 'Served by ' . esc_html('{{ inventory_hostname }}')
+        . '</p>';
+});
