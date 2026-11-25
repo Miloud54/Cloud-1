@@ -53,5 +53,5 @@
     - containerd
     - docker
 
-- name: Apply Docker deamon configuration before starting containers
+- name: Apply Docker daemon configuration before starting containers
   ansible.builtin.meta: flush_handlers
