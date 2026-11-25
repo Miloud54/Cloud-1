@@ -1,14 +1,20 @@
 # Managed by Ansible (role: nginx). Do not edit on the server.
 
     server_tokens off;
-    
-# HTTP: redirect everything to HTTPS
+
+# HTTP: Let's Encrypt challenge, then redirect everything to HTTPS
 server {
     listen 80;
     listen [::]:80;
     server_name _;
 
-    return 301 https://$host$request_uri;
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
 }
 
 # HTTPS

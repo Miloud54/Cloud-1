@@ -10,6 +10,14 @@
     - { name: conf.d, mode: "0755" }
     - { name: certs, mode: "0700" }
 
+- name: Create ACME challenge directory
+  ansible.builtin.file:
+    path: "{{ app_dir }}/certbot/www"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
 - name: Deploy nginx site configuration
   ansible.builtin.template:
     src: default.conf.j2

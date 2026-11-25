@@ -1,0 +1,4 @@
+---
+tls_certbot_image: "certbot/certbot:v5.10.0"
+tls_staging: false
+tls_certbot_dir: "{{ app_dir }}/certbot/{{ 'staging' if tls_staging else 'production' }}"

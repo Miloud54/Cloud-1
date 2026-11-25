@@ -1,0 +1,66 @@
+---
+- name: Create certbot config directory
+  ansible.builtin.file:
+    path: "{{ tls_certbot_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Check for an existing Let's Encrypt certificate
+  ansible.builtin.stat:
+    path: "{{ tls_certbot_dir }}/live/{{ app_domain }}/fullchain.pem"
+  register: tls_le_cert
+
+- name: Request a Let's Encrypt certificate
+  ansible.builtin.command:
+    argv: "{{ tls_certbot_args + (['--test-cert'] if tls_staging else []) }}"
+  vars:
+    tls_certbot_args:
+      - docker
+      - run
+      - --rm
+      - -v
+      - "{{ tls_certbot_dir }}:/etc/letsencrypt"
+      - -v
+      - "{{ app_dir }}/certbot/www:/var/www/certbot"
+      - "{{ tls_certbot_image }}"
+      - certonly
+      - --webroot
+      - -w
+      - /var/www/certbot
+      - -d
+      - "{{ app_domain }}"
+      - --non-interactive
+      - --agree-tos
+      - --register-unsafely-without-email
+  register: tls_certbot
+  when: not tls_le_cert.stat.exists
+  changed_when: tls_certbot.rc == 0
+  failed_when: false
+
+- name: Warn that Let's Encrypt failed (self-signed certificate kept)
+  ansible.builtin.debug:
+    msg:
+      - "Let's Encrypt could not issue a certificate for {{ app_domain }}."
+      - "The site stays available over HTTPS with the self-signed certificate."
+      - "{{ tls_certbot.stderr_lines | default([]) | select | list | last | default('') }}"
+  when:
+    - tls_certbot is not skipped
+    - tls_certbot.rc != 0
+
+- name: Install the Let's Encrypt certificate for nginx
+  ansible.builtin.copy:
+    src: "{{ tls_certbot_dir }}/live/{{ app_domain }}/{{ item.name }}"
+    dest: "{{ app_dir }}/nginx/certs/{{ item.name }}"
+    remote_src: true
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+  loop:
+    - { name: fullchain.pem, mode: "0644" }
+    - { name: privkey.pem, mode: "0600" }
+  loop_control:
+    label: "{{ item.name }}"
+  when: tls_le_cert.stat.exists or (tls_certbot.rc | default(1)) == 0
+  notify: Reload nginx

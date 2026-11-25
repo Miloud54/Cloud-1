@@ -79,6 +79,7 @@ services:
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - ./nginx/certs:/etc/nginx/certs:ro
+      - ./certbot/www:/var/www/certbot:ro
       - wp_data:/var/www/html:ro
       - pma_data:/var/www/phpmyadmin:ro
     networks:
@@ -99,3 +100,4 @@ secrets:
     file: ./secrets/db_root_password
   db_password:
     file: ./secrets/db_password
+

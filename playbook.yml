@@ -10,3 +10,5 @@
     - { role: wordpress, tags: [wordpress] }
     - { role: phpmyadmin, tags: [phpmyadmin] }
     - { role: nginx, tags: [nginx] }
+    - { role: nginx, tags: [nginx] }
+    - { role: tls, tags: [tls] }
