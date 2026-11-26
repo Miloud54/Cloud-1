@@ -88,6 +88,52 @@ ansible all -b -a "ufw status verbose"    # firewall rules
 ansible-lint                              # lint the Ansible code
 ```
 
+## Running from another workstation
+
+Deploying needs the SSH key of the servers and the Vault password, which are not
+in the repository. Never copy the owner's private key: give the other workstation
+its own key, then revoke it afterwards.
+
+**1. On the other workstation:** clone the repository, install Ansible and create a dedicated key.
+
+```bash
+pipx install ansible-core                  # or: python3 -m pip install --user ansible-core
+ansible-galaxy collection install -r requirements.yml
+ssh-keygen -t ed25519 -f ~/.ssh/cloud1_eval -N "" -C "cloud1-eval"
+cat ~/.ssh/cloud1_eval.pub                 # public key: safe to share, send it to the owner
+```
+
+**2. On the owner's workstation:** authorize this public key on every server.
+
+```bash
+ansible all -m ansible.posix.authorized_key \
+  -a "user=ubuntu state=present key='<content of cloud1_eval.pub>'"
+```
+
+**3. On the other workstation:** the owner types the Vault password (nothing is displayed).
+
+```bash
+read -rs VP && printf '%s' "$VP" > .vault_pass && chmod 600 .vault_pass; unset VP
+```
+
+**4. On the other workstation:** use the dedicated key (`--private-key` overrides `ansible.cfg`).
+
+```bash
+ansible all -m ping --private-key ~/.ssh/cloud1_eval
+ansible-playbook playbook.yml --private-key ~/.ssh/cloud1_eval
+ssh -i ~/.ssh/cloud1_eval ubuntu@<IP>
+```
+
+**5. Clean up when done.**
+
+```bash
+# on the other workstation
+rm -f .vault_pass ~/.ssh/cloud1_eval ~/.ssh/cloud1_eval.pub
+# on the owner's workstation: revoke the key
+ansible all -m ansible.posix.authorized_key \
+  -a "user=ubuntu state=absent key='<content of cloud1_eval.pub>'"
+```
+
 ## Project layout
 
 | Path | Content |
